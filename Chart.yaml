@@ -1,0 +1,11 @@
+apiVersion: v2
+name: n8n-deployment
+description: Helm chart to deploy n8n using community-charts/n8n as a dependency
+type: application
+version: 1.0.0
+appVersion: "2.3.6"
+
+dependencies:
+  - name: n8n
+    version: 1.16.23
+    repository: https://community-charts.github.io/helm-charts

@@ -1,0 +1,646 @@
+# n8n Helm Chart Values
+# This values file matches the community-charts/n8n chart (version 1.16.23)
+# Reference: https://artifacthub.io/packages/helm/community-charts/n8n
+
+n8n:
+  # =========================================================================
+  # Container Image Configuration
+  # =========================================================================
+  image:
+    repository: tranlight/workflow
+    pullPolicy: Never
+    tag: "2.5.0"
+
+  imagePullSecrets: []
+
+  # =========================================================================
+  # Chart Name Overrides
+  # =========================================================================
+  nameOverride: ""
+  fullnameOverride: ""
+
+  # =========================================================================
+  # Deployment Strategy
+  # =========================================================================
+  strategy:
+    type: "RollingUpdate"
+    rollingUpdate:
+      maxSurge: "50%"
+      maxUnavailable: "50%"
+
+  # =========================================================================
+  # Service Account Configuration
+  # =========================================================================
+  serviceAccount:
+    create: true
+    automount: true
+    annotations: {}
+    name: ""
+
+  # =========================================================================
+  # Pod Configuration
+  # =========================================================================
+  podAnnotations: {}
+  podLabels: {}
+
+  podSecurityContext:
+    fsGroup: 1000
+    fsGroupChangePolicy: "OnRootMismatch"
+
+  securityContext:
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop:
+        - ALL
+    readOnlyRootFilesystem: false
+    runAsNonRoot: true
+    privileged: false
+    runAsUser: 1000
+    runAsGroup: 1000
+
+  # =========================================================================
+  # Service Configuration
+  # =========================================================================
+  service:
+    enabled: true
+    type: ClusterIP
+    port: 5678
+    name: http
+    annotations: {}
+    labels: {}
+
+  # =========================================================================
+  # Logging Configuration
+  # =========================================================================
+  log:
+    level: info
+    output:
+      - console
+    scopes: []
+    file:
+      location: "logs/n8n.log"
+      maxsize: 16
+      maxcount: "100"
+
+  # =========================================================================
+  # Node Configuration (built-in and external npm packages)
+  # =========================================================================
+  nodes:
+    builtin:
+      enabled: false
+      modules: []
+    external:
+      allowAll: false
+      reinstallMissingPackages: false
+      packages: []
+    initContainer:
+      image:
+        repository: node
+        tag: "20-alpine"
+        pullPolicy: IfNotPresent
+      resources: {}
+
+  # =========================================================================
+  # Private NPM Registry Configuration
+  # =========================================================================
+  npmRegistry:
+    enabled: false
+    url: ""
+    secretName: ""
+    secretKey: "npmrc"
+    customNpmrc: ""
+
+  # =========================================================================
+  # Binary Data Storage Configuration
+  # =========================================================================
+  binaryData:
+    availableModes: []
+    mode: "default"
+    localStoragePath: ""
+    s3:
+      host: ""
+      bucketName: ""
+      bucketRegion: "us-east-1"
+      accessKey: ""
+      accessSecret: ""
+      existingSecret: ""
+
+  # =========================================================================
+  # Database Configuration
+  # =========================================================================
+  db:
+    tablePrefix: ""
+    type: postgresdb
+    logging:
+      enabled: false
+      options: error
+      maxQueryExecutionTime: 0
+    postgresdb:
+      poolSize: 2
+      connectionTimeout: 20000
+      idleConnectionTimeout: 30000
+      schema: public
+      ssl:
+        enabled: false
+        base64EncodedCertificateAuthorityFile: ""
+        base64EncodedCertFile: ""
+        base64EncodedPrivateKeyFile: ""
+        existingCertificateAuthorityFileSecret:
+          name: ""
+          key: "ca.crt"
+        existingCertFileSecret:
+          name: ""
+          key: "cert.crt"
+        existingPrivateKeyFileSecret:
+          name: ""
+          key: "cert.key"
+        rejectUnauthorized: true
+
+  # =========================================================================
+  # Sentry Configuration
+  # =========================================================================
+  sentry:
+    enabled: false
+    backendDsn: ""
+    frontendDsn: ""
+    externalTaskRunnersDsn: ""
+
+  # =========================================================================
+  # Diagnostics Configuration
+  # =========================================================================
+  diagnostics:
+    enabled: false
+    frontendConfig: "1zPn9bgWPzlQc0p8Gj1uiK6DOTn;https://telemetry.n8n.io"
+    backendConfig: "1zPn7YoGC3ZXE9zLeTKLuQCB4F6;https://telemetry.n8n.io"
+    postHog:
+      apiKey: "phc_4URIAm1uYfJO7j8kWSe0J8lc8IqnstRLS7Jx8NcakHo"
+      apiHost: "https://ph.n8n.io"
+
+  # =========================================================================
+  # Version Notifications Configuration
+  # =========================================================================
+  versionNotifications:
+    enabled: false
+    endpoint: "https://api.n8n.io/api/versions/"
+    infoUrl: "https://docs.n8n.io/hosting/installation/updating/"
+
+  # =========================================================================
+  # API Configuration
+  # =========================================================================
+  api:
+    enabled: true
+    path: api
+    swagger:
+      enabled: false
+
+  # =========================================================================
+  # Enterprise License Configuration
+  # =========================================================================
+  license:
+    enabled: false
+    activationKey: ""
+    existingActivationKeySecret: ""
+    autoNenew:
+      enabled: true
+      offsetInHours: 72
+    serverUrl: "https://license.n8n.io/v1"
+    tenantId: 1
+
+  # =========================================================================
+  # Main Node Configuration
+  # =========================================================================
+  main:
+    count: 1
+    editorBaseUrl: "https://n8n.tranlight.dev"
+    pdb:
+      enabled: true
+      minAvailable: 1
+      maxUnavailable: null
+    resources: {}
+    livenessProbe:
+      httpGet:
+        path: /healthz
+        port: http
+    readinessProbe:
+      httpGet:
+        path: /healthz/readiness
+        port: http
+    forceToUseStatefulset: false
+    persistence:
+      enabled: true
+      volumeName: ""
+      existingClaim: ""
+      mountPath: "/home/node/.n8n"
+      subPath: ""
+      storageClass: ""
+      accessMode: ReadWriteOnce
+      size: 8Gi
+      annotations:
+        helm.sh/resource-policy: keep
+      labels: {}
+    extraEnvVars: {}
+    extraSecretNamesForEnvFrom: []
+    volumes: []
+    volumeMounts: []
+    initContainers: []
+    extraContainers: []
+    affinity: {}
+    hostAliases: []
+    runtimeClassName: ""
+
+  # =========================================================================
+  # Worker Node Configuration
+  # =========================================================================
+  worker:
+    mode: regular  # 'regular' to use main node, or 'queue' for worker nodes
+    concurrency: 10
+    count: 1
+    allNodes: false
+    autoscaling:
+      enabled: false
+      minReplicas: 2
+      maxReplicas: 10
+      metrics:
+        - type: Resource
+          resource:
+            name: memory
+            target:
+              type: Utilization
+              averageUtilization: 80
+        - type: Resource
+          resource:
+            name: cpu
+            target:
+              type: Utilization
+              averageUtilization: 80
+      behavior: {}
+    pdb:
+      enabled: true
+      minAvailable: 1
+      maxUnavailable: null
+    waitMainNodeReady:
+      enabled: false
+      overwriteSchema: ""
+      overwriteUrl: ""
+      healthCheckPath: "/healthz"
+      additionalParameters: []
+    resources: {}
+    startupProbe:
+      exec:
+        command: ["/bin/sh", "-c", "ps aux | grep '[n]8n'"]
+      initialDelaySeconds: 10
+      periodSeconds: 5
+      failureThreshold: 30
+    livenessProbe:
+      httpGet:
+        path: /healthz
+        port: http
+    readinessProbe:
+      httpGet:
+        path: /healthz/readiness
+        port: http
+    forceToUseStatefulset: false
+    persistence:
+      enabled: false
+      volumeName: ""
+      existingClaim: ""
+      mountPath: "/home/node/.n8n"
+      subPath: ""
+      storageClass: ""
+      accessMode: ReadWriteOnce
+      size: 8Gi
+      annotations:
+        helm.sh/resource-policy: keep
+      labels: {}
+    extraEnvVars: {}
+    extraSecretNamesForEnvFrom: []
+    volumes: []
+    volumeMounts: []
+    initContainers: []
+    extraContainers: []
+    affinity: {}
+    hostAliases: []
+    runtimeClassName: ""
+
+  # =========================================================================
+  # Webhook Node Configuration
+  # =========================================================================
+  webhook:
+    mode: regular  # 'regular' to use main node, or 'queue' for webhook nodes
+    url: ""
+    count: 2
+    allNodes: false
+    mcp:
+      enabled: true
+      resources: {}
+      startupProbe:
+        exec:
+          command: ["/bin/sh", "-c", "ps aux | grep '[n]8n'"]
+        initialDelaySeconds: 10
+        periodSeconds: 5
+        failureThreshold: 30
+      livenessProbe:
+        httpGet:
+          path: /healthz
+          port: http
+      readinessProbe:
+        httpGet:
+          path: /healthz/readiness
+          port: http
+      extraEnvVars: {}
+      extraSecretNamesForEnvFrom: []
+      volumes: []
+      volumeMounts: []
+      initContainers: []
+      extraContainers: []
+      affinity: {}
+      hostAliases: []
+    autoscaling:
+      enabled: false
+      minReplicas: 2
+      maxReplicas: 10
+      metrics:
+        - type: Resource
+          resource:
+            name: cpu
+            target:
+              type: Utilization
+              averageUtilization: 80
+      behavior: {}
+    pdb:
+      enabled: true
+      minAvailable: 1
+      maxUnavailable: null
+    waitMainNodeReady:
+      enabled: false
+      overwriteSchema: ""
+      overwriteUrl: ""
+      healthCheckPath: "/healthz"
+      additionalParameters: []
+    resources: {}
+    startupProbe:
+      exec:
+        command: ["/bin/sh", "-c", "ps aux | grep '[n]8n'"]
+      initialDelaySeconds: 10
+      periodSeconds: 5
+      failureThreshold: 30
+    livenessProbe:
+      httpGet:
+        path: /healthz
+        port: http
+    readinessProbe:
+      httpGet:
+        path: /healthz/readiness
+        port: http
+    extraEnvVars: {}
+    extraSecretNamesForEnvFrom: []
+    volumes: []
+    volumeMounts: []
+    initContainers: []
+    extraContainers: []
+    affinity: {}
+    hostAliases: []
+    runtimeClassName: ""
+
+  # =========================================================================
+  # Task Runners Configuration
+  # =========================================================================
+  taskRunners:
+    mode: internal  # 'internal' or 'external'
+    taskTimeout: 60
+    taskHeartbeatInterval: 30
+    maxConcurrency: 5
+    broker:
+      address: "127.0.0.1"
+      port: 5679
+    external:
+      mainNodeAuthToken: ""
+      workerNodeAuthToken: ""
+      autoShutdownTimeout: 15
+      port: 5680
+      nodeOptions:
+        - "--max-semi-space-size=16"
+        - "--max-old-space-size=300"
+      resources:
+        requests:
+          cpu: 100m
+          memory: 32Mi
+        limits:
+          cpu: 2000m
+          memory: 512Mi
+
+  # =========================================================================
+  # Workflow History Configuration
+  # =========================================================================
+  workflowHistory:
+    enabled: true
+    pruneTime: 336  # Time in hours (-1 to disable)
+
+  # =========================================================================
+  # Encryption Key Configuration
+  # =========================================================================
+  encryptionKey: ""
+  existingEncryptionKeySecret: ""
+
+  # =========================================================================
+  # General Settings
+  # =========================================================================
+  timezone: "Europe/Berlin"
+  defaultLocale: en
+  gracefulShutdownTimeout: 30
+
+  # =========================================================================
+  # Ingress Configuration
+  # =========================================================================
+  ingress:
+    enabled: false
+    className: ""
+    annotations: {}
+      # kubernetes.io/ingress.class: nginx
+      # kubernetes.io/tls-acme: "true"
+    hosts:
+      - host: n8n.local
+        paths:
+          - path: /
+            pathType: Prefix
+    tls: []
+    #  - secretName: n8n-tls
+    #    hosts:
+    #      - n8n.local
+
+  # =========================================================================
+  # Service Monitor Configuration (Prometheus)
+  # =========================================================================
+  serviceMonitor:
+    enabled: false
+    namespace: ""
+    interval: 30s
+    labels:
+      release: prometheus
+    timeout: 10s
+    targetLabels: []
+    metricRelabelings: []
+    metricsPrefix: "n8n_"
+    include:
+      defaultMetrics: true
+      cacheMetrics: false
+      messageEventBusMetrics: false
+      workflowIdLabel: false
+      nodeTypeLabel: false
+      credentialTypeLabel: false
+      apiEndpoints: false
+      apiPathLabel: false
+      apiMethodLabel: false
+      apiStatusCodeLabel: false
+      queueMetrics: false
+
+  # =========================================================================
+  # DEPRECATED: Legacy Configuration (use main/worker/webhook blocks instead)
+  # =========================================================================
+  extraEnvVars: {}
+  extraSecretNamesForEnvFrom: []
+  resources: {}
+  livenessProbe: {}
+  readinessProbe: {}
+  volumes: []
+  volumeMounts: []
+
+  # =========================================================================
+  # Node Selector, Tolerations, and Affinity
+  # =========================================================================
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+
+  # =========================================================================
+  # DNS Configuration
+  # =========================================================================
+  dnsPolicy: ""
+  dnsConfig: {}
+
+  # =========================================================================
+  # Redis Configuration (Bitnami subchart)
+  # =========================================================================
+  redis:
+    enabled: true
+    architecture: standalone
+    image:
+      repository: bitnamilegacy/redis
+    auth:
+      enabled: false
+    master:
+      service:
+        ports:
+          redis: 6379
+      persistence:
+        enabled: false
+
+  # =========================================================================
+  # External Redis Configuration
+  # =========================================================================
+  externalRedis:
+    database: 0
+    host: ""
+    username: ""
+    password: ""
+    port: 6379
+    existingSecret: ""
+    clusterNodes: []
+    tls:
+      enabled: false
+    dualStack: false
+
+  # =========================================================================
+  # PostgreSQL Configuration (Bitnami subchart)
+  # =========================================================================
+  postgresql:
+    enabled: true
+    architecture: standalone
+    image:
+      repository: bitnamilegacy/postgresql
+    primary:
+      service:
+        ports:
+          postgresql: 5432
+      persistence:
+        enabled: true
+        existingClaim: ""
+    auth:
+      username: ""
+      password: ""
+      database: "n8n"
+
+  # =========================================================================
+  # External PostgreSQL Configuration
+  # =========================================================================
+  externalPostgresql:
+    host: ""
+    username: "postgres"
+    password: ""
+    port: 5432
+    database: n8n
+    existingSecret: ""
+
+  # =========================================================================
+  # MinIO Configuration (for S3-compatible binary storage)
+  # =========================================================================
+  minio:
+    enabled: false
+    mode: standalone
+    deploymentUpdate:
+      type: Recreate
+    statefulSetUpdate:
+      updateStrategy: Recreate
+    drivesPerNode: 1
+    replicas: 1
+    pools: 1
+    rootUser: ""
+    rootPassword: ""
+    resources:
+      requests:
+        memory: 1Gi
+    persistence:
+      enabled: true
+      annotations: {}
+      existingClaim: ""
+      storageClass: ""
+      volumeName: ""
+      accessMode: ReadWriteOnce
+      size: 40Gi
+      subPath: ""
+    ingress:
+      enabled: true
+      hosts:
+        - minio.mydomain.com
+      path: /
+    consoleIngress:
+      enabled: false
+      hosts:
+        - minio-console.mydomain.com
+      path: /
+    policies:
+      - name: n8n-policy
+        statements:
+          - actions:
+              - "s3:AbortMultipartUpload"
+              - "s3:GetObject"
+              - "s3:DeleteObject"
+              - "s3:PutObject"
+              - "s3:ListMultipartUploadParts"
+            resources:
+              - "arn:aws:s3:::n8n-bucket/*"
+          - actions:
+              - "s3:GetBucketLocation"
+              - "s3:ListBucket"
+              - "s3:ListBucketMultipartUploads"
+            resources:
+              - "arn:aws:s3:::n8n-bucket"
+    users:
+      - accessKey: n8n-user
+        secretKey: Change_Me
+        policy: n8n-policy
+    buckets:
+      - name: n8n-bucket
+        policy: none
+        purge: false
+        versioning: false
