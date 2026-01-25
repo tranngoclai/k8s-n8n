@@ -8,7 +8,7 @@ n8n:
   # =========================================================================
   image:
     repository: tranlight/workflow
-    pullPolicy: Never
+    pullPolicy: IfNotPresent
     tag: "2.5.0"
 
   imagePullSecrets: []
@@ -140,21 +140,6 @@ n8n:
       connectionTimeout: 20000
       idleConnectionTimeout: 30000
       schema: public
-      ssl:
-        enabled: false
-        base64EncodedCertificateAuthorityFile: ""
-        base64EncodedCertFile: ""
-        base64EncodedPrivateKeyFile: ""
-        existingCertificateAuthorityFileSecret:
-          name: ""
-          key: "ca.crt"
-        existingCertFileSecret:
-          name: ""
-          key: "cert.crt"
-        existingPrivateKeyFileSecret:
-          name: ""
-          key: "cert.key"
-        rejectUnauthorized: true
 
   # =========================================================================
   # Sentry Configuration
@@ -192,19 +177,6 @@ n8n:
     path: api
     swagger:
       enabled: false
-
-  # =========================================================================
-  # Enterprise License Configuration
-  # =========================================================================
-  license:
-    enabled: false
-    activationKey: ""
-    existingActivationKeySecret: ""
-    autoNenew:
-      enabled: true
-      offsetInHours: 72
-    serverUrl: "https://license.n8n.io/v1"
-    tenantId: 1
 
   # =========================================================================
   # Main Node Configuration
@@ -252,13 +224,13 @@ n8n:
   # Worker Node Configuration
   # =========================================================================
   worker:
-    mode: regular  # 'regular' to use main node, or 'queue' for worker nodes
+    mode: queue  # 'regular' to use main node, or 'queue' for worker nodes
     concurrency: 10
     count: 1
     allNodes: false
     autoscaling:
-      enabled: false
-      minReplicas: 2
+      enabled: true
+      minReplicas: 1
       maxReplicas: 10
       metrics:
         - type: Resource
@@ -445,7 +417,7 @@ n8n:
   # =========================================================================
   # General Settings
   # =========================================================================
-  timezone: "Europe/Berlin"
+  timezone: "Asia/Ho_Chi_Minh"
   defaultLocale: en
   gracefulShutdownTimeout: 30
 
@@ -569,17 +541,6 @@ n8n:
       username: ""
       password: ""
       database: "n8n"
-
-  # =========================================================================
-  # External PostgreSQL Configuration
-  # =========================================================================
-  externalPostgresql:
-    host: ""
-    username: "postgres"
-    password: ""
-    port: 5432
-    database: n8n
-    existingSecret: ""
 
   # =========================================================================
   # MinIO Configuration (for S3-compatible binary storage)
