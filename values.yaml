@@ -90,9 +90,10 @@ n8n:
       enabled: false
       modules: []
     external:
-      allowAll: false
-      reinstallMissingPackages: false
-      packages: []
+      allowAll: true
+      reinstallMissingPackages: true
+      packages:
+        - "n8n-nodes-playwright-cdp"
     initContainer:
       image:
         repository: node
@@ -218,7 +219,8 @@ n8n:
       - name: cache
         emptyDir: {}
     extraEnvVars:
-      N8N_REINSTALL_MISSING_PACKAGES: "false"
+      # Browserless Chrome CDP endpoint for Playwright
+      PLAYWRIGHT_CHROMIUM_ENDPOINT: "ws://n8n-browserless-chrome:3000"
     extraSecretNamesForEnvFrom: []
     initContainers: []
     extraContainers: []
@@ -290,7 +292,9 @@ n8n:
       annotations:
         helm.sh/resource-policy: keep
       labels: {}
-    extraEnvVars: {}
+    extraEnvVars:
+      # Browserless Chrome CDP endpoint for Playwright
+      PLAYWRIGHT_CHROMIUM_ENDPOINT: "ws://n8n-deployment-browserless-chrome:3000"
     extraSecretNamesForEnvFrom: []
     volumes: []
     volumeMounts: []
@@ -631,12 +635,12 @@ browserless-chrome:
     chromeArgs:
       - "--disable-dev-shm-usage"
       - "--no-sandbox"
-      - "--disable-gpu"
+      # - "--disable-gpu"
       - "--disable-software-rasterizer"
     # Enable debug mode (set to true for troubleshooting)
     debug: false
     # Demo mode allows UI access without token
-    demoMode: false
+    demoMode: true
 
   # Image configuration - using Chromium-only image
   image:
