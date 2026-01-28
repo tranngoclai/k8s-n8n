@@ -701,3 +701,162 @@ browserless-chrome:
   # Ingress (disabled by default)
   ingress:
     enabled: false
+
+# =============================================================================
+# SeleniumBase API Configuration
+# FastAPI server for executing SeleniumBase web scraping scripts
+# =============================================================================
+seleniumbase:
+  enabled: true
+
+  # Number of replicas
+  replicaCount: 1
+
+  # Image configuration
+  image:
+    # Replace with your registry and image name after building
+    # Build command: docker build -t your-registry/seleniumbase-api:latest .
+    repository: tranlight/seleniumbase-api
+    pullPolicy: IfNotPresent
+    tag: "latest"
+
+  imagePullSecrets: []
+  nameOverride: ""
+  fullnameOverride: ""
+
+  # Service Account
+  serviceAccount:
+    create: true
+    automount: true
+    annotations: {}
+    name: ""
+
+  # Pod annotations and labels
+  podAnnotations: {}
+  podLabels: {}
+
+  # Pod Security Context
+  podSecurityContext:
+    fsGroup: 1000
+    runAsUser: 1000
+    runAsGroup: 1000
+    runAsNonRoot: true
+
+  # Container Security Context
+  securityContext:
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop:
+        - ALL
+    readOnlyRootFilesystem: false
+    runAsNonRoot: true
+    privileged: false
+    runAsUser: 1000
+    runAsGroup: 1000
+
+  # Service configuration
+  service:
+    type: ClusterIP
+    port: 8000
+    targetPort: 8000
+    annotations: {}
+    labels: {}
+
+  # Resource limits and requests
+  resources:
+    limits:
+      cpu: 2000m
+      memory: 4Gi
+    requests:
+      cpu: 500m
+      memory: 1Gi
+
+  # Health probes
+  livenessProbe:
+    httpGet:
+      path: /health
+      port: http
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 3
+
+  readinessProbe:
+    httpGet:
+      path: /health
+      port: http
+    initialDelaySeconds: 10
+    periodSeconds: 5
+    timeoutSeconds: 3
+    failureThreshold: 3
+
+  # Environment variables
+  env:
+    # Display for Xvfb
+    DISPLAY: ":99"
+    # Python buffering
+    PYTHONUNBUFFERED: "1"
+    PYTHONIOENCODING: "UTF-8"
+
+  # Volumes and volume mounts
+  volumes:
+    - name: tmp-jobs
+      emptyDir: {}
+    - name: tmp-artifacts
+      emptyDir: {}
+    - name: dshm
+      emptyDir:
+        medium: Memory
+        sizeLimit: 2Gi
+
+  volumeMounts:
+    - name: tmp-jobs
+      mountPath: /tmp/seleniumbase_jobs
+    - name: tmp-artifacts
+      mountPath: /tmp/seleniumbase_artifacts
+    - name: dshm
+      mountPath: /dev/shm
+
+  # Node selector
+  nodeSelector: {}
+
+  # Tolerations
+  tolerations: []
+
+  # Affinity
+  affinity: {}
+
+  # Autoscaling (optional)
+  autoscaling:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 5
+    targetCPUUtilizationPercentage: 80
+    targetMemoryUtilizationPercentage: 80
+
+  # Ingress (optional)
+  ingress:
+    enabled: false
+    className: ""
+    annotations: {}
+      # kubernetes.io/ingress.class: nginx
+      # kubernetes.io/tls-acme: "true"
+      # cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    hosts:
+      - host: seleniumbase-api.local
+        paths:
+          - path: /
+            pathType: Prefix
+    tls: []
+    #  - secretName: seleniumbase-api-tls
+    #    hosts:
+    #      - seleniumbase-api.local
+
+  # Service Monitor for Prometheus (optional)
+  serviceMonitor:
+    enabled: false
+    namespace: ""
+    interval: 30s
+    labels:
+      release: prometheus
+    timeout: 10s

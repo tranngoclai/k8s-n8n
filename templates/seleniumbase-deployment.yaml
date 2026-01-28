@@ -1,0 +1,83 @@
+{{- if .Values.seleniumbase.enabled -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "n8n-deployment.fullname" . }}-seleniumbase
+  labels:
+    {{- include "n8n-deployment.labels" . | nindent 4 }}
+    app.kubernetes.io/component: seleniumbase-api
+spec:
+  {{- if not .Values.seleniumbase.autoscaling.enabled }}
+  replicas: {{ .Values.seleniumbase.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "n8n-deployment.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: seleniumbase-api
+  template:
+    metadata:
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/seleniumbase-deployment.yaml") . | sha256sum }}
+        {{- with .Values.seleniumbase.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      labels:
+        {{- include "n8n-deployment.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: seleniumbase-api
+        {{- with .Values.seleniumbase.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      {{- with .Values.seleniumbase.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "seleniumbase.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.seleniumbase.podSecurityContext | nindent 8 }}
+      containers:
+      - name: seleniumbase-api
+        securityContext:
+          {{- toYaml .Values.seleniumbase.securityContext | nindent 12 }}
+        image: "{{ .Values.seleniumbase.image.repository }}:{{ .Values.seleniumbase.image.tag | default .Chart.AppVersion }}"
+        imagePullPolicy: {{ .Values.seleniumbase.image.pullPolicy }}
+        ports:
+        - name: http
+          containerPort: 8000
+          protocol: TCP
+        env:
+        {{- range $key, $value := .Values.seleniumbase.env }}
+        - name: {{ $key }}
+          value: {{ $value | quote }}
+        {{- end }}
+        {{- with .Values.seleniumbase.livenessProbe }}
+        livenessProbe:
+          {{- toYaml . | nindent 12 }}
+        {{- end }}
+        {{- with .Values.seleniumbase.readinessProbe }}
+        readinessProbe:
+          {{- toYaml . | nindent 12 }}
+        {{- end }}
+        resources:
+          {{- toYaml .Values.seleniumbase.resources | nindent 12 }}
+        volumeMounts:
+        {{- with .Values.seleniumbase.volumeMounts }}
+        {{- toYaml . | nindent 10 }}
+        {{- end }}
+      volumes:
+      {{- with .Values.seleniumbase.volumes }}
+      {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.seleniumbase.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.seleniumbase.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.seleniumbase.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+{{- end }}

@@ -1,0 +1,76 @@
+Thank you for installing {{ .Chart.Name }}.
+
+Your release is named {{ .Release.Name }}.
+
+To learn more about the release, try:
+
+  $ helm status {{ .Release.Name }}
+  $ helm get all {{ .Release.Name }}
+
+---
+
+INSTALLED COMPONENTS:
+
+{{- if index .Values "n8n" "enabled" }}
+✓ n8n Workflow Automation
+  - Service: {{ .Release.Name }}-n8n:5678
+{{- end }}
+
+{{- if index .Values "browserless-chrome" "browserless" }}
+✓ Browserless Chrome
+  - Service: {{ .Release.Name }}-browserless-chrome:3000
+{{- end }}
+
+{{- if .Values.seleniumbase.enabled }}
+✓ SeleniumBase API
+  - Service: {{ include "n8n-deployment.fullname" . }}-seleniumbase:{{ .Values.seleniumbase.service.port }}
+{{- end }}
+
+---
+
+{{ if .Values.seleniumbase.enabled -}}
+SELENIUMBASE API:
+
+1. Get the application URL:
+{{- if .Values.seleniumbase.ingress.enabled }}
+{{- range $host := .Values.seleniumbase.ingress.hosts }}
+  {{- range .paths }}
+  http{{ if $.Values.seleniumbase.ingress.tls }}s{{ end }}://{{ $host.host }}{{ .path }}
+  {{- end }}
+{{- end }}
+{{- else if contains "NodePort" .Values.seleniumbase.service.type }}
+  export NODE_PORT=$(kubectl get --namespace {{ .Release.Namespace }} -o jsonpath="{.spec.ports[0].nodePort}" services {{ include "n8n-deployment.fullname" . }}-seleniumbase)
+  export NODE_IP=$(kubectl get nodes --namespace {{ .Release.Namespace }} -o jsonpath="{.items[0].status.addresses[0].address}")
+  echo http://$NODE_IP:$NODE_PORT
+{{- else if contains "LoadBalancer" .Values.seleniumbase.service.type }}
+  NOTE: It may take a few minutes for the LoadBalancer IP to be available.
+        You can watch the status by running:
+        kubectl get --namespace {{ .Release.Namespace }} svc -w {{ include "n8n-deployment.fullname" . }}-seleniumbase
+
+  export SERVICE_IP=$(kubectl get svc --namespace {{ .Release.Namespace }} {{ include "n8n-deployment.fullname" . }}-seleniumbase --template "{{"{{ range (index .status.loadBalancer.ingress 0) }}{{.}}{{ end }}"}}")
+  echo http://$SERVICE_IP:{{ .Values.seleniumbase.service.port }}
+{{- else if contains "ClusterIP" .Values.seleniumbase.service.type }}
+  export POD_NAME=$(kubectl get pods --namespace {{ .Release.Namespace }} -l "app.kubernetes.io/component=seleniumbase-api,app.kubernetes.io/instance={{ .Release.Name }}" -o jsonpath="{.items[0].metadata.name}")
+  echo "Visit http://127.0.0.1:8000 to access SeleniumBase API"
+  kubectl --namespace {{ .Release.Namespace }} port-forward $POD_NAME 8000:8000
+{{- end }}
+
+2. Check API health:
+  curl http://127.0.0.1:8000/health
+
+3. Submit a test job:
+  curl -X POST http://127.0.0.1:8000/submit -F "file=@your_script.py"
+
+4. API Documentation:
+  Visit http://127.0.0.1:8000/docs for interactive API documentation
+
+For more information, see: https://github.com/seleniumbase/SeleniumBase
+
+{{- end }}
+
+{{- if not .Values.seleniumbase.enabled }}
+
+SELENIUMBASE API: Disabled
+To enable, set seleniumbase.enabled=true in values.yaml
+
+{{- end }}

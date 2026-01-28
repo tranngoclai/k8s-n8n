@@ -1,0 +1,25 @@
+{{- if and .Values.seleniumbase.enabled .Values.seleniumbase.serviceMonitor.enabled }}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ include "n8n-deployment.fullname" . }}-seleniumbase
+  {{- if .Values.seleniumbase.serviceMonitor.namespace }}
+  namespace: {{ .Values.seleniumbase.serviceMonitor.namespace }}
+  {{- end }}
+  labels:
+    {{- include "n8n-deployment.labels" . | nindent 4 }}
+    app.kubernetes.io/component: seleniumbase-api
+    {{- with .Values.seleniumbase.serviceMonitor.labels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "n8n-deployment.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: seleniumbase-api
+  endpoints:
+    - port: http
+      interval: {{ .Values.seleniumbase.serviceMonitor.interval }}
+      scrapeTimeout: {{ .Values.seleniumbase.serviceMonitor.timeout }}
+      path: /metrics
+{{- end }}

@@ -1,0 +1,33 @@
+{{- if and .Values.seleniumbase.enabled .Values.seleniumbase.autoscaling.enabled }}
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: {{ include "n8n-deployment.fullname" . }}-seleniumbase
+  labels:
+    {{- include "n8n-deployment.labels" . | nindent 4 }}
+    app.kubernetes.io/component: seleniumbase-api
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: {{ include "n8n-deployment.fullname" . }}-seleniumbase
+  minReplicas: {{ .Values.seleniumbase.autoscaling.minReplicas }}
+  maxReplicas: {{ .Values.seleniumbase.autoscaling.maxReplicas }}
+  metrics:
+    {{- if .Values.seleniumbase.autoscaling.targetCPUUtilizationPercentage }}
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: {{ .Values.seleniumbase.autoscaling.targetCPUUtilizationPercentage }}
+    {{- end }}
+    {{- if .Values.seleniumbase.autoscaling.targetMemoryUtilizationPercentage }}
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: {{ .Values.seleniumbase.autoscaling.targetMemoryUtilizationPercentage }}
+    {{- end }}
+{{- end }}

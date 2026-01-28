@@ -1,0 +1,44 @@
+{{- if and .Values.seleniumbase.enabled .Values.seleniumbase.ingress.enabled -}}
+{{- $fullName := printf "%s-seleniumbase" (include "n8n-deployment.fullname" .) -}}
+{{- $svcPort := .Values.seleniumbase.service.port -}}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ $fullName }}
+  labels:
+    {{- include "n8n-deployment.labels" . | nindent 4 }}
+    app.kubernetes.io/component: seleniumbase-api
+  {{- with .Values.seleniumbase.ingress.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  {{- if .Values.seleniumbase.ingress.className }}
+  ingressClassName: {{ .Values.seleniumbase.ingress.className }}
+  {{- end }}
+  {{- if .Values.seleniumbase.ingress.tls }}
+  tls:
+    {{- range .Values.seleniumbase.ingress.tls }}
+    - hosts:
+        {{- range .hosts }}
+        - {{ . | quote }}
+        {{- end }}
+      secretName: {{ .secretName }}
+    {{- end }}
+  {{- end }}
+  rules:
+    {{- range .Values.seleniumbase.ingress.hosts }}
+    - host: {{ .host | quote }}
+      http:
+        paths:
+          {{- range .paths }}
+          - path: {{ .path }}
+            pathType: {{ .pathType }}
+            backend:
+              service:
+                name: {{ $fullName }}
+                port:
+                  number: {{ $svcPort }}
+          {{- end }}
+    {{- end }}
+{{- end }}

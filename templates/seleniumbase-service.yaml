@@ -1,0 +1,26 @@
+{{- if .Values.seleniumbase.enabled -}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "n8n-deployment.fullname" . }}-seleniumbase
+  labels:
+    {{- include "n8n-deployment.labels" . | nindent 4 }}
+    app.kubernetes.io/component: seleniumbase-api
+    {{- with .Values.seleniumbase.service.labels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  {{- with .Values.seleniumbase.service.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  type: {{ .Values.seleniumbase.service.type }}
+  ports:
+    - port: {{ .Values.seleniumbase.service.port }}
+      targetPort: {{ .Values.seleniumbase.service.targetPort }}
+      protocol: TCP
+      name: http
+  selector:
+    {{- include "n8n-deployment.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: seleniumbase-api
+{{- end }}
