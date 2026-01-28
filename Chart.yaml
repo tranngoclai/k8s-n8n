@@ -9,6 +9,3 @@ dependencies:
   - name: n8n
     version: 1.16.23
     repository: https://community-charts.github.io/helm-charts
-  - name: browserless-chrome
-    version: 0.3.0
-    repository: https://scriptonbasestar-containers.github.io/sb-helm-charts
