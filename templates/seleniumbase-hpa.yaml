@@ -2,7 +2,7 @@
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
-  name: {{ include "n8n-deployment.fullname" . }}-seleniumbase
+  name: {{ include "seleniumbase.fullname" . }}
   labels:
     {{- include "n8n-deployment.labels" . | nindent 4 }}
     app.kubernetes.io/component: seleniumbase-api
@@ -10,7 +10,7 @@ spec:
   scaleTargetRef:
     apiVersion: apps/v1
     kind: Deployment
-    name: {{ include "n8n-deployment.fullname" . }}-seleniumbase
+    name: {{ include "seleniumbase.fullname" . }}
   minReplicas: {{ .Values.seleniumbase.autoscaling.minReplicas }}
   maxReplicas: {{ .Values.seleniumbase.autoscaling.maxReplicas }}
   metrics:

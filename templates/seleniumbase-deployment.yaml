@@ -2,7 +2,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "n8n-deployment.fullname" . }}-seleniumbase
+  name: {{ include "seleniumbase.fullname" . }}
   labels:
     {{- include "n8n-deployment.labels" . | nindent 4 }}
     app.kubernetes.io/component: seleniumbase-api
@@ -16,9 +16,8 @@ spec:
       app.kubernetes.io/component: seleniumbase-api
   template:
     metadata:
+      {{- with .Values.seleniumbase.podAnnotations }}
       annotations:
-        checksum/config: {{ include (print $.Template.BasePath "/seleniumbase-deployment.yaml") . | sha256sum }}
-        {{- with .Values.seleniumbase.podAnnotations }}
         {{- toYaml . | nindent 8 }}
         {{- end }}
       labels:
@@ -35,6 +34,16 @@ spec:
       serviceAccountName: {{ include "seleniumbase.serviceAccountName" . }}
       securityContext:
         {{- toYaml .Values.seleniumbase.podSecurityContext | nindent 8 }}
+      initContainers:
+      - name: setup-x11
+        image: busybox:latest
+        command: ['sh', '-c', 'mkdir -p /tmp/.X11-unix && chmod 1777 /tmp/.X11-unix']
+        volumeMounts:
+        - name: tmp-x11
+          mountPath: /tmp/.X11-unix
+        securityContext:
+          runAsUser: 0
+          runAsNonRoot: false
       containers:
       - name: seleniumbase-api
         securityContext:

@@ -51,11 +51,22 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
 
 {{/*
+Create a default fully qualified app name for SeleniumBase.
+*/}}
+{{- define "seleniumbase.fullname" -}}
+{{- if .Values.seleniumbase.fullnameOverride }}
+{{- .Values.seleniumbase.fullnameOverride | trunc 63 | trimSuffix "-" }}
+{{- else }}
+{{- printf "%s-seleniumbase" .Release.Name | trunc 63 | trimSuffix "-" }}
+{{- end }}
+{{- end }}
+
+{{/*
 Create the name of the service account to use for SeleniumBase
 */}}
 {{- define "seleniumbase.serviceAccountName" -}}
 {{- if .Values.seleniumbase.serviceAccount.create }}
-{{- default (printf "%s-seleniumbase" (include "n8n-deployment.fullname" .)) .Values.seleniumbase.serviceAccount.name }}
+{{- default (include "seleniumbase.fullname" .) .Values.seleniumbase.serviceAccount.name }}
 {{- else }}
 {{- default "default" .Values.seleniumbase.serviceAccount.name }}
 {{- end }}

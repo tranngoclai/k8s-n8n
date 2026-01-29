@@ -16,14 +16,9 @@ INSTALLED COMPONENTS:
   - Service: {{ .Release.Name }}-n8n:5678
 {{- end }}
 
-{{- if index .Values "browserless-chrome" "browserless" }}
-✓ Browserless Chrome
-  - Service: {{ .Release.Name }}-browserless-chrome:3000
-{{- end }}
-
 {{- if .Values.seleniumbase.enabled }}
 ✓ SeleniumBase API
-  - Service: {{ include "n8n-deployment.fullname" . }}-seleniumbase:{{ .Values.seleniumbase.service.port }}
+  - Service: {{ include "seleniumbase.fullname" . }}:{{ .Values.seleniumbase.service.port }}
 {{- end }}
 
 ---
@@ -39,15 +34,15 @@ SELENIUMBASE API:
   {{- end }}
 {{- end }}
 {{- else if contains "NodePort" .Values.seleniumbase.service.type }}
-  export NODE_PORT=$(kubectl get --namespace {{ .Release.Namespace }} -o jsonpath="{.spec.ports[0].nodePort}" services {{ include "n8n-deployment.fullname" . }}-seleniumbase)
+  export NODE_PORT=$(kubectl get --namespace {{ .Release.Namespace }} -o jsonpath="{.spec.ports[0].nodePort}" services {{ include "seleniumbase.fullname" . }})
   export NODE_IP=$(kubectl get nodes --namespace {{ .Release.Namespace }} -o jsonpath="{.items[0].status.addresses[0].address}")
   echo http://$NODE_IP:$NODE_PORT
 {{- else if contains "LoadBalancer" .Values.seleniumbase.service.type }}
   NOTE: It may take a few minutes for the LoadBalancer IP to be available.
         You can watch the status by running:
-        kubectl get --namespace {{ .Release.Namespace }} svc -w {{ include "n8n-deployment.fullname" . }}-seleniumbase
+        kubectl get --namespace {{ .Release.Namespace }} svc -w {{ include "seleniumbase.fullname" . }}
 
-  export SERVICE_IP=$(kubectl get svc --namespace {{ .Release.Namespace }} {{ include "n8n-deployment.fullname" . }}-seleniumbase --template "{{"{{ range (index .status.loadBalancer.ingress 0) }}{{.}}{{ end }}"}}")
+  export SERVICE_IP=$(kubectl get svc --namespace {{ .Release.Namespace }} {{ include "seleniumbase.fullname" . }} --template "{{"{{ range (index .status.loadBalancer.ingress 0) }}{{.}}{{ end }}"}}")
   echo http://$SERVICE_IP:{{ .Values.seleniumbase.service.port }}
 {{- else if contains "ClusterIP" .Values.seleniumbase.service.type }}
   export POD_NAME=$(kubectl get pods --namespace {{ .Release.Namespace }} -l "app.kubernetes.io/component=seleniumbase-api,app.kubernetes.io/instance={{ .Release.Name }}" -o jsonpath="{.items[0].metadata.name}")

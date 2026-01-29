@@ -658,15 +658,15 @@ seleniumbase:
 
   # Container Security Context
   securityContext:
-    allowPrivilegeEscalation: false
-    capabilities:
-      drop:
-        - ALL
-    readOnlyRootFilesystem: false
-    runAsNonRoot: true
-    privileged: false
-    runAsUser: 1000
-    runAsGroup: 1000
+    # allowPrivilegeEscalation: true
+    # capabilities:
+    #   drop:
+    #     - ALL
+    # readOnlyRootFilesystem: false
+    # runAsNonRoot: true
+    # privileged: true
+    # runAsUser: 1000
+    # runAsGroup: 1000
 
   # Service configuration
   service:
@@ -718,6 +718,10 @@ seleniumbase:
       emptyDir: {}
     - name: tmp-artifacts
       emptyDir: {}
+    - name: tmp-x11
+      emptyDir: {}
+    - name: cache
+      emptyDir: {}
     - name: dshm
       emptyDir:
         medium: Memory
@@ -728,6 +732,10 @@ seleniumbase:
       mountPath: /tmp/seleniumbase_jobs
     - name: tmp-artifacts
       mountPath: /tmp/seleniumbase_artifacts
+    - name: tmp-x11
+      mountPath: /tmp/.X11-unix
+    - name: cache
+      mountPath: /.cache
     - name: dshm
       mountPath: /dev/shm
 

@@ -1,5 +1,5 @@
 {{- if and .Values.seleniumbase.enabled .Values.seleniumbase.ingress.enabled -}}
-{{- $fullName := printf "%s-seleniumbase" (include "n8n-deployment.fullname" .) -}}
+{{- $fullName := include "seleniumbase.fullname" . -}}
 {{- $svcPort := .Values.seleniumbase.service.port -}}
 apiVersion: networking.k8s.io/v1
 kind: Ingress
