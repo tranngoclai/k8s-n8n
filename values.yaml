@@ -700,7 +700,7 @@ seleniumbase:
       path: /health
       port: http
     initialDelaySeconds: 10
-    periodSeconds: 5
+    periodSeconds: 10
     timeoutSeconds: 3
     failureThreshold: 3
 
@@ -712,32 +712,33 @@ seleniumbase:
     PYTHONUNBUFFERED: "1"
     PYTHONIOENCODING: "UTF-8"
 
-  # Volumes and volume mounts
+  # Volume configuration for SeleniumBase data directories
+  # Mirrors VOLUME ["/app/jobs", "/app/artifacts", "/app/profiles", "/app/db"]
+  # All volumes use ReadWriteOnce access mode and are kept on deletion by default
   volumes:
-    - name: tmp-jobs
-      emptyDir: {}
-    - name: tmp-artifacts
-      emptyDir: {}
-    - name: tmp-x11
-      emptyDir: {}
-    - name: cache
-      emptyDir: {}
-    - name: dshm
-      emptyDir:
-        medium: Memory
-        sizeLimit: 2Gi
+    jobs:
+      enabled: true
+      size: 5Gi
+    artifacts:
+      enabled: true
+      size: 10Gi
+    profiles:
+      enabled: true
+      size: 3Gi
+    db:
+      enabled: true
+      size: 2Gi
+  
+  # Global volume settings (optional overrides)
+  volumeDefaults:
+    storageClass: ""  # Use default storage class
+    accessMode: ReadWriteOnce
 
-  volumeMounts:
-    - name: tmp-jobs
-      mountPath: /tmp/seleniumbase_jobs
-    - name: tmp-artifacts
-      mountPath: /tmp/seleniumbase_artifacts
-    - name: tmp-x11
-      mountPath: /tmp/.X11-unix
-    - name: cache
-      mountPath: /.cache
-    - name: dshm
-      mountPath: /dev/shm
+  # Extra volume mounts (in addition to the default app volume mount)
+  extraVolumeMounts: []
+
+  # Extra volumes (in addition to the default app volume)
+  extraVolumes: []
 
   # Node selector
   nodeSelector: {}

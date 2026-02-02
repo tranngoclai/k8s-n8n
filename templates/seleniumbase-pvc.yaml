@@ -1,0 +1,38 @@
+{{- if .Values.seleniumbase.enabled -}}
+{{- range $volume := list "jobs" "artifacts" "profiles" "db" }}
+{{- $volumeConfig := index $.Values.seleniumbase.volumes $volume }}
+{{- $defaults := $.Values.seleniumbase.volumeDefaults }}
+{{- if and $volumeConfig.enabled (not $volumeConfig.existingClaim) }}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "seleniumbase.fullname" $ }}-{{ $volume }}
+  labels:
+    {{- include "n8n-deployment.labels" $ | nindent 4 }}
+    app.kubernetes.io/component: seleniumbase-api
+    app.kubernetes.io/volume-type: {{ $volume }}
+  annotations:
+    helm.sh/resource-policy: keep
+    {{- with $volumeConfig.annotations }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  accessModes:
+    - {{ $volumeConfig.accessMode | default $defaults.accessMode | default "ReadWriteOnce" | quote }}
+  {{- with ($volumeConfig.storageClass | default $defaults.storageClass) }}
+  {{- if (eq "-" .) }}
+  storageClassName: ""
+  {{- else }}
+  storageClassName: {{ . | quote }}
+  {{- end }}
+  {{- end }}
+  {{- with $volumeConfig.volumeName }}
+  volumeName: {{ . }}
+  {{- end }}
+  resources:
+    requests:
+      storage: {{ $volumeConfig.size | quote }}
+{{- end }}
+{{- end }}
+{{- end }}

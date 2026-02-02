@@ -34,16 +34,6 @@ spec:
       serviceAccountName: {{ include "seleniumbase.serviceAccountName" . }}
       securityContext:
         {{- toYaml .Values.seleniumbase.podSecurityContext | nindent 8 }}
-      initContainers:
-      - name: setup-x11
-        image: busybox:latest
-        command: ['sh', '-c', 'mkdir -p /tmp/.X11-unix && chmod 1777 /tmp/.X11-unix']
-        volumeMounts:
-        - name: tmp-x11
-          mountPath: /tmp/.X11-unix
-        securityContext:
-          runAsUser: 0
-          runAsNonRoot: false
       containers:
       - name: seleniumbase-api
         securityContext:
@@ -70,12 +60,32 @@ spec:
         resources:
           {{- toYaml .Values.seleniumbase.resources | nindent 12 }}
         volumeMounts:
-        {{- with .Values.seleniumbase.volumeMounts }}
-        {{- toYaml . | nindent 10 }}
+        {{- range $volume := list "jobs" "artifacts" "profiles" "db" }}
+        {{- $volumeConfig := index $.Values.seleniumbase.volumes $volume }}
+        {{- if $volumeConfig.enabled }}
+        - name: {{ $volume }}
+          mountPath: {{ $volumeConfig.mountPath | default (printf "/app/%s" $volume) }}
+          {{- with $volumeConfig.subPath }}
+          subPath: {{ . }}
+          {{- end }}
+        {{- end }}
+        {{- end }}
+        {{- with .Values.seleniumbase.extraVolumeMounts }}
+        {{- toYaml . | nindent 8 }}
         {{- end }}
       volumes:
-      {{- with .Values.seleniumbase.volumes }}
-      {{- toYaml . | nindent 8 }}
+      {{- range $volume := list "jobs" "artifacts" "profiles" "db" }}
+      {{- $volumeConfig := index $.Values.seleniumbase.volumes $volume }}
+      - name: {{ $volume }}
+      {{- if $volumeConfig.enabled }}
+        persistentVolumeClaim:
+          claimName: {{ $volumeConfig.existingClaim | default (printf "%s-%s" (include "seleniumbase.fullname" $) $volume) }}
+      {{- else }}
+        emptyDir: {}
+      {{- end }}
+      {{- end }}
+      {{- with .Values.seleniumbase.extraVolumes }}
+      {{- toYaml . | nindent 6 }}
       {{- end }}
       {{- with .Values.seleniumbase.nodeSelector }}
       nodeSelector:
